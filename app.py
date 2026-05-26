@@ -25,6 +25,9 @@ def add_student():
 
     if not data:
         return jsonify({"error": "No JSON received"}), 400
+    
+    if not data.get("name") or not data.get("email"):
+        return jsonify({"error": "Name and email are required"}), 400
 
     existing_student = Student.query.filter_by(email=data["email"]).first()
     if existing_student:
@@ -78,8 +81,11 @@ def update_student(student_id):
 
     if not student:
         return jsonify({"error": "Student not found"}), 404
-
+    
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON received"}), 400
+
     student.name = data.get("name", student.name)
     student.age = data.get("age", student.age)
     student.branch = data.get("branch", student.branch)
