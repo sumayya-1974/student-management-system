@@ -129,7 +129,10 @@ Response:
   "average_age": 21.5
 }
 ```
-
+### Export Students as CSV
+- **GET** `/export_students`
+- Download all active student records as a `.csv` file
+- Opens directly in Excel or Google Sheets
 ---
 
 ##  What I Learned
@@ -139,6 +142,9 @@ Response:
 - Handling validations and business rules
 - Working with JSON requests/responses
 - Testing APIs using Postman
+- Exporting student data as CSV files
+- Storing timestamps for student records
+
 
 ---
 
