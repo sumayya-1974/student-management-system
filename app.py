@@ -1,4 +1,7 @@
 import os
+import csv
+import io
+from flask import Response
 from flask import Flask, request, jsonify
 from models import db, Student
 
@@ -151,6 +154,25 @@ def analytics():
         "status_counts": status_counts,
         "average_age": avg_age
     })
+@app.route("/export_students", methods=["GET"])
+def export_students():
+    students = Student.query.filter_by(is_active=True).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["ID", "Name", "Email", "Age", "Branch", "Status", "Created At"])
+
+    for s in students:
+        writer.writerow([s.id, s.name, s.email, s.age, s.branch, s.status, s.created_at])
+
+    output.seek(0)
+
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=students.csv"}
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
