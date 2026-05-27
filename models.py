@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-
+from datetime import datetime
 # Create database object
 db = SQLAlchemy()
 
@@ -13,7 +13,7 @@ class Student(db.Model):
 
     status = db.Column(db.String(50), default="Applied")
     is_active = db.Column(db.Boolean, default=True)
-
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     def to_dict(self):
         return {
             "id": self.id,
@@ -22,7 +22,8 @@ class Student(db.Model):
             "age": self.age,
             "branch": self.branch,
             "status": self.status,
-            "is_active": self.is_active
+            "is_active": self.is_active,
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M") if self.created_at else None
         }
 
 
