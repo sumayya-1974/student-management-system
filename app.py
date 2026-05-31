@@ -2,6 +2,7 @@ import os
 import csv
 import io
 from flask import Response
+from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from models import db, Student
 
@@ -147,12 +148,19 @@ def analytics():
     # Average age
     ages = [s.age for s in students if s.age is not None]
     avg_age = sum(ages)/len(ages) if ages else 0
+    
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    recent_students = Student.query.filter(
+        Student.created_at >= seven_days_ago,
+        Student.is_active == True
+    ).count()
 
     return jsonify({
         "total_active_students": total_active,
         "branch_counts": branch_counts,
         "status_counts": status_counts,
-        "average_age": avg_age
+        "average_age": avg_age,
+        "recently_added_last_7_days": recent_students
     })
 @app.route("/export_students", methods=["GET"])
 def export_students():
@@ -173,6 +181,40 @@ def export_students():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=students.csv"}
     )
+@app.route("/add_students_bulk", methods=["POST"])
+def add_students_bulk():
+    data = request.get_json()
+    if not data or not isinstance(data, list):
+        return jsonify({"error": "Send a list of students"}), 400
+
+    added = []
+    skipped = []
+
+    for item in data:
+        if not item.get("name") or not item.get("email"):
+            skipped.append(item)
+            continue
+        existing = Student.query.filter_by(email=item["email"]).first()
+        if existing:
+            skipped.append(item)
+            continue
+        student = Student(
+            name=item["name"],
+            email=item["email"],
+            age=item.get("age"),
+            branch=item.get("branch"),
+            status=item.get("status", "Applied")
+        )
+        db.session.add(student)
+        added.append(item["name"])
+
+    db.session.commit()
+
+    return jsonify({
+        "message": f"{len(added)} students added",
+        "added": added,
+        "skipped": skipped
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
