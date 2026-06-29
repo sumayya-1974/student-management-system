@@ -3,4 +3,4 @@ __pycache__/
 instance/
 *.pyc
 database.db
-
+.env

@@ -4,18 +4,19 @@ import io
 from flask import Response
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
+from flask_migrate import Migrate
 from models import db, Student
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "database.db"))
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
-
-with app.app_context():
-    db.create_all()
+migrate = Migrate(app, db)
 
 
 @app.route("/")
@@ -42,6 +43,7 @@ def add_student():
         email=data["email"],
         age=data.get("age"),
         branch=data.get("branch"),
+        phone=data.get("phone"),
         status=data.get("status", "Applied")
     )
 
@@ -93,6 +95,7 @@ def update_student(student_id):
     student.name = data.get("name", student.name)
     student.age = data.get("age", student.age)
     student.branch = data.get("branch", student.branch)
+    student.phone = data.get("phone", student.phone)
     student.status = data.get("status", student.status)
 
     db.session.commit()
@@ -203,6 +206,7 @@ def add_students_bulk():
             email=item["email"],
             age=item.get("age"),
             branch=item.get("branch"),
+            phone=item.get("phone"),
             status=item.get("status", "Applied")
         )
         db.session.add(student)
