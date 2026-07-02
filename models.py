@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 from datetime import datetime
 # Create database object
 db = SQLAlchemy()
@@ -26,6 +27,10 @@ class Student(db.Model):
             "is_active": self.is_active,
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M") if self.created_at else None
         }
+class Admin(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
 
 
 
